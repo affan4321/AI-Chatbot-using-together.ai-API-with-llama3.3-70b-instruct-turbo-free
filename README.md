@@ -13,7 +13,7 @@ A simple command-line AI chatbot powered by Together.ai's Llama 3.3 70B model wi
 
 ### Download and Run
 
-1. Download the `AI_Chatbot.exe` file
+1. Download the `AI_Chatbot.exe` file from the Releases Section
 2. Double-click to run
 3. Start chatting with the AI!
 4. Type `exit` to quit
