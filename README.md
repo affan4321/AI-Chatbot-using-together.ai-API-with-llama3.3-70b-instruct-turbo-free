@@ -20,7 +20,7 @@ A simple command-line chatbot powered by Together.ai's Llama 3.3 70B model with 
 
 ```bash
 git clone https://github.com/affan4321/AI-Chatbot-using-together.ai-API-with-llama3.3-70b-instruct-turbo-free
-cd "AI Chatbot using together.ai API with llama3.3-70b-instruct-turbo-free"
+cd "AI-Chatbot-using-together.ai-API-with-llama3.3-70b-instruct-turbo-free"
 ```
 
 ### 2. Create a Virtual Environment
