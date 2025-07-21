@@ -2,6 +2,8 @@ from together import Together
 import time
 import os
 import sys
+import locale
+import codecs
 
 class Chatbot:
     def __init__(self):
@@ -11,19 +13,19 @@ class Chatbot:
         api_key = self.load_api_key()
         
         if not api_key or api_key == 'YOUR_API_KEY_HERE':
-            print("⚠️  Warning: No valid API key found!")
-            print("   For development: Set TOGETHER_API_KEY environment variable or add to .env file")
-            print("   For distribution: API key will be embedded during build process")
-            print("   Get your free API key from: https://api.together.xyz/settings/api-keys")
+            safe_print("⚠️  Warning: No valid API key found!")
+            safe_print("   For development: Set TOGETHER_API_KEY environment variable or add to .env file")
+            safe_print("   For distribution: API key will be embedded during build process")
+            safe_print("   Get your free API key from: https://api.together.xyz/settings/api-keys")
             print()
             sys.exit(1)
         
         try:
             self.client = Together(api_key=api_key)
             # Note: Skipping model list test to avoid validation errors
-            print("✅ Connected to Together.ai successfully!")
+            safe_print("✅ Connected to Together.ai successfully!")
         except Exception as e:
-            print(f"❌ Error: Failed to initialize Together.ai client")
+            safe_print(f"❌ Error: Failed to initialize Together.ai client")
             print(f"   Details: {e}")
             print("   Please check your API key and internet connection.")
             sys.exit(1)
@@ -102,20 +104,52 @@ class Chatbot:
                     content = chunk.choices[0].delta.content
                     # Add typing effect by printing each character with a small delay
                     for char in content:
-                        print(char, end="", flush=True)
+                        try:
+                            print(char, end="", flush=True)
+                        except UnicodeEncodeError:
+                            # Replace problematic Unicode with safe alternatives
+                            if ord(char) > 127:  # Non-ASCII character
+                                print('?', end="", flush=True)
+                            else:
+                                print(char, end="", flush=True)
                         time.sleep(0.01)  # Faster typing effect
             
             print()  # Add a newline at the end
             
         except KeyboardInterrupt:
-            print("\n\n⏹️  Response cancelled by user")
+            safe_print("\n\n⏹️  Response cancelled by user")
         except Exception as e:
-            print(f"\n❌ Error generating response: {e}")
+            safe_print(f"\n❌ Error generating response: {e}")
             print("   Please check your internet connection and API key.")
 
 
+def configure_console_encoding():
+    """Configure console to support UTF-8 and emojis"""
+    try:
+        # Try to set UTF-8 encoding for Windows console
+        if sys.platform.startswith('win'):
+            # Enable UTF-8 support in Windows console
+            os.system('chcp 65001 >nul 2>&1')
+            
+            # Set stdout encoding to UTF-8
+            if hasattr(sys.stdout, 'reconfigure'):
+                sys.stdout.reconfigure(encoding='utf-8')
+            elif hasattr(sys.stdout, 'buffer'):
+                sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer, 'strict')
+                
+        return True
+    except Exception:
+        return False
+
 def print_robot():
-    print("""
+    """Print robot ASCII art with fallback for incompatible terminals"""
+    # Try to configure UTF-8 encoding
+    utf8_supported = configure_console_encoding()
+    
+    try:
+        if utf8_supported:
+            # Full Unicode version with emojis
+            print("""
     🤖 AI CHATBOT POWERED BY TOGETHER.AI 🤖
                by Muhammad Affan
     
@@ -143,6 +177,51 @@ def print_robot():
     Welcome to your AI Assistant!
     Type 'exit' to quit the conversation.
     """)
+        else:
+            raise Exception("UTF-8 not supported")
+            
+    except Exception:
+        # Fallback ASCII version for older/incompatible terminals
+        print("""
+    *** AI CHATBOT POWERED BY TOGETHER.AI ***
+                by Muhammad Affan
+    
+           .---.
+          /     \\
+         | () () |
+          \\  ^  /
+           |||||
+           |||||
+           
+        .-""""""-.
+       /          \\
+      |   Robot    |
+      |  Assistant |
+       \\          /
+        '-.......-'
+         
+    Welcome to your AI Assistant!
+    Type 'exit' to quit the conversation.
+    """)
+
+def safe_print(text, emoji_fallback=True):
+    """Print text with emoji fallback for incompatible terminals"""
+    try:
+        print(text)
+    except UnicodeEncodeError:
+        if emoji_fallback:
+            # Replace common emojis with text equivalents
+            fallback_text = text.replace('🤖', '[AI]')
+            fallback_text = fallback_text.replace('✅', '[OK]')
+            fallback_text = fallback_text.replace('❌', '[ERROR]')
+            fallback_text = fallback_text.replace('⚠️', '[WARNING]')
+            fallback_text = fallback_text.replace('💡', '[TIP]')
+            fallback_text = fallback_text.replace('🚀', '[GO]')
+            fallback_text = fallback_text.replace('👋', '[WAVE]')
+            fallback_text = fallback_text.replace('⏹️', '[STOP]')
+            print(fallback_text)
+        else:
+            print(text.encode('ascii', 'replace').decode('ascii'))
 
 
 if __name__ == "__main__":
@@ -150,11 +229,11 @@ if __name__ == "__main__":
         print_robot()
         chat = Chatbot()
         
-        print("💡 Tips:")
+        safe_print("💡 Tips:")
         print("   • Type your questions naturally")
         print("   • Press Ctrl+C during response to cancel")
         print("   • Type 'exit' to quit")
-        print("   • Enjoy chatting with AI! 🚀")
+        safe_print("   • Enjoy chatting with AI! 🚀")
         print()
         
         while True:
@@ -166,19 +245,19 @@ if __name__ == "__main__":
                     continue
                     
                 if user_input.lower() in ['exit', 'quit', 'bye']:
-                    print("🤖 Thanks for chatting! Goodbye! 👋")
+                    safe_print("🤖 Thanks for chatting! Goodbye! 👋")
                     break
                     
                 chat.enter_prompt(user_input)
                 
             except KeyboardInterrupt:
-                print("\n\n🤖 Thanks for chatting! Goodbye! 👋")
+                safe_print("\n\n🤖 Thanks for chatting! Goodbye! 👋")
                 break
             except EOFError:
-                print("\n\n🤖 Thanks for chatting! Goodbye! 👋")
+                safe_print("\n\n🤖 Thanks for chatting! Goodbye! 👋")
                 break
                 
     except Exception as e:
-        print(f"\n❌ Fatal error: {e}")
+        safe_print(f"\n❌ Fatal error: {e}")
         print("The application will now exit.")
         sys.exit(1)
