@@ -13,7 +13,7 @@ A simple command-line AI chatbot powered by Together.ai's Llama 3.3 70B model wi
 
 ### Download and Run
 
-1. Download the `AI_Chatbot.exe` file from this link: https://drive.google.com/file/d/1v_10cvEuinb373NhlHG3WBea_mbI-D-h/view?usp=sharing
+1. Download the `AI_Chatbot.exe` file from this link: https://drive.google.com/file/d/1UgJJRJsZ_HzrPlFnwIYM2ozTj2DA5Vbm/view?usp=sharing
 2. Double-click to run
 3. Start chatting with the AI!
 4. Type `exit` to quit
@@ -31,38 +31,50 @@ A simple command-line AI chatbot powered by Together.ai's Llama 3.3 70B model wi
 
 ### Creating the Executable
 
-If you want to build the executable yourself:
+To build the executable with embedded API key for public distribution:
 
 ### Quick Build (Recommended)
 
-Run the automated build script:
-```bash
-python build_executable.py
-```
+1. **Run the setup and build script:**
+   ```bash
+   python setup_and_build.py
+   ```
+
+2. **Enter your Together.ai API key when prompted**
+
+3. **Find your executable in the `dist/` folder**
 
 ### Manual Build
 
-1. **Install PyInstaller:**
+1. **Install dependencies:**
    ```bash
-   pip install pyinstaller
+   pip install together pyinstaller
    ```
 
-2. **Create executable:**
+2. **Edit chatbot.py and replace `YOUR_API_KEY_HERE` with your actual API key**
+
+3. **Create executable:**
    ```bash
    pyinstaller --onefile --console --name "AI_Chatbot" chatbot.py
    ```
 
-3. **Find your executable in the `dist/` folder**
+4. **Find your executable in the `dist/` folder**
 
 ### Distribution
 
 1. Take the executable from the `dist/` folder
-2. Distribute the single `.exe` file
-3. Users can run it directly without any setup
+2. Upload to your preferred hosting (Google Drive, GitHub Releases, etc.)
+3. Share the download link
+4. Users download and run immediately - no setup needed!
 
 ### Technical Details
 
-- **File Size:** ~50-100MB (includes Python runtime)
+- **File Size:** ~50-100MB (includes Python runtime and dependencies)
 - **Platform:** Windows executable (create separate builds for Mac/Linux)
-- **Dependencies:** All included in the executable
-- **No Installation Required:** Users just run the .exe file
+- **API Key:** Embedded directly in executable
+- **Dependencies:** All included
+- **User Requirements:** None - just download and run
+
+### Security Note
+
+⚠️ **Important:** Your API key will be embedded in the executable. Monitor your API usage and consider rate limiting on your Together.ai account.
