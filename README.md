@@ -73,7 +73,7 @@ To build the executable with embedded API key for public distribution:
 
 ### Technical Details
 
-- **File Size:** ~117MB (includes Python runtime and all dependencies)
+- **File Size:** ~111MB (includes Python runtime and all dependencies)
 - **Platform:** Windows executable (cross-platform compatible code)
 - **API Key:** Securely embedded directly in executable
 - **Dependencies:** All included (together.ai, PyInstaller, encoding support)
