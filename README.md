@@ -73,13 +73,15 @@ To build the executable with embedded API key for public distribution:
 
 ### Technical Details
 
-- **File Size:** ~111MB (includes Python runtime and all dependencies)
+- **File Size:** ~117MB (includes Python runtime and all dependencies)
 - **Platform:** Windows executable (cross-platform compatible code)
 - **API Key:** Securely embedded directly in executable
 - **Dependencies:** All included (together.ai, PyInstaller, encoding support)
 - **User Requirements:** None - just download and run
-- **Compatibility:** Windows 7+ with automatic Unicode/emoji fallback
+- **Compatibility:** Windows 7+ with automatic Unicode configuration and fallback
 - **Model:** Llama 3.2 3B Instruct Turbo (optimized for speed and reliability)
+- **Unicode Support:** Automatic console configuration with graceful ASCII fallback
+
 
 ### Security Note
 
