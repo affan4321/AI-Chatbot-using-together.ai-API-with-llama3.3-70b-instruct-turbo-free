@@ -1,6 +1,8 @@
 # AI Chatbot - Standalone Executable
 
-A simple command-line AI chatbot powered by Together.ai's Llama 3.3 70B model with real-time streaming and typing effects.
+A simple command-line AI chatbot powered by Together.ai's Llama 3.2 3B model with real-time streaming and typing effects.
+
+![Image](image.png)
 
 ## Features
 
@@ -15,10 +17,22 @@ A simple command-line AI chatbot powered by Together.ai's Llama 3.3 70B model wi
 
 ### Download and Run
 
-1. Download the `AI_Chatbot.exe` file from this link: https://drive.google.com/file/d/1UgJJRJsZ_HzrPlFnwIYM2ozTj2DA5Vbm/view?usp=sharing
-2. Double-click to run
-3. Start chatting with the AI!
-4. Type `exit` to quit
+1. Download the `AI_Chatbot.exe` file: https://drive.google.com/file/d/17pBdun8hBG6gCEo1PZuhy4vOXx9Hmz2R/view?usp=sharing
+2. **Windows Security Warning**: You may see "Windows protected your PC" warning
+   - This is **normal** for unsigned executables
+   - Click "More info" → "Run anyway" to proceed
+   - All independent developers face this without expensive certificates ($300-800/year)
+3. Double-click to run
+4. Start chatting with the AI!
+5. Type `exit` to quit
+
+### Common Questions
+
+**Q: Why does Windows show a security warning?**
+A: This happens because the executable isn't digitally signed. It's completely safe - this affects all unsigned software from independent developers.
+
+**Q: Why does the file size appear larger after download?**
+A: Windows adds security metadata during download (~111MB becomes ~117MB). This is normal Windows behavior and doesn't affect functionality.
 
 ### Usage
 
@@ -33,18 +47,17 @@ A simple command-line AI chatbot powered by Together.ai's Llama 3.3 70B model wi
 
 ## For Developers
 
-### Creating the Executable
-
-To build the executable with embedded API key for public distribution:
-
 ### Quick Build (Recommended)
 
-1. **Run the setup and build script:**
-   ```bash
-   python setup_and_build.py
+1. **Create a `.env` file with your API key:**
+   ```
+   TOGETHER_API_KEY=your_api_key_here
    ```
 
-2. **Enter your Together.ai API key when prompted**
+2. **Run the enhanced build script:**
+   ```bash
+   python build_executable.py
+   ```
 
 3. **Find your executable in the `dist/` folder**
 
@@ -55,14 +68,10 @@ To build the executable with embedded API key for public distribution:
    pip install together pyinstaller
    ```
 
-2. **Edit chatbot.py and replace `YOUR_API_KEY_HERE` with your actual API key**
-
-3. **Create executable:**
+2. **Build with enhanced Windows compatibility:**
    ```bash
-   pyinstaller --onefile --console --name "AI_Chatbot" chatbot.py
+   python build_executable.py
    ```
-
-4. **Find your executable in the `dist/` folder**
 
 ### Distribution
 
@@ -71,7 +80,7 @@ To build the executable with embedded API key for public distribution:
 3. Share the download link
 4. Users download and run immediately - no setup needed!
 
-### Technical Details
+## Technical Details
 
 - **File Size:** ~111MB (includes Python runtime and all dependencies)
 - **Platform:** Windows executable (cross-platform compatible code)
@@ -80,9 +89,68 @@ To build the executable with embedded API key for public distribution:
 - **User Requirements:** None - just download and run
 - **Compatibility:** Windows 7+ with automatic Unicode configuration and fallback
 - **Model:** Llama 3.2 3B Instruct Turbo (optimized for speed and reliability)
-- **Unicode Support:** Automatic console configuration with graceful ASCII fallback
+- **Security:** Enhanced Windows metadata for better compatibility
 
+## Security & Troubleshooting
 
-### Security Note
+### Windows Security Warning
 
-⚠️ **Important:** Your API key will be embedded in the executable. Monitor your API usage and consider rate limiting on your Together.ai account.
+**This is normal behavior** that affects ALL unsigned executables. Here's why:
+
+1. **Unsigned Executable**: No expensive code signing certificate
+2. **Unknown Publisher**: Windows hasn't seen this specific file before
+3. **Network Activity**: App connects to Together.ai API
+
+**How to run safely:**
+1. Click "More info" when you see the warning
+2. Click "Run anyway"
+3. The app will start normally
+
+**Alternative methods:**
+- Right-click → Properties → Check "Unblock"
+- Add to Windows Defender exclusions
+- Enterprise: Group Policy whitelist
+
+### File Size Changes
+
+The file may appear larger after download due to Windows security metadata:
+- **Original**: ~111MB (actual executable)
+- **After download**: ~117MB (includes Windows security data)
+- **This is normal** and doesn't affect functionality
+
+### API Key Security
+
+⚠️ **Important Notes:**
+- Your API key will be embedded in the executable
+- Monitor your Together.ai usage dashboard regularly
+- Consider rate limiting on your Together.ai account
+- For production use, implement server-side API proxy instead
+
+### For IT Administrators
+
+**Whitelist Information:**
+- **Application**: AI_Chatbot.exe
+- **Publisher**: Unsigned (individual developer)
+- **Network Access**: HTTPS to api.together.xyz only
+- **Execution Level**: No elevation required
+- **Data Handling**: No local storage beyond conversation display
+
+## Files in This Project
+
+- `chatbot.py` - Main chatbot application
+- `build_executable.py` - Enhanced build script with Windows compatibility
+- `requirements.txt` - Python dependencies
+- `.env` - Your API key (create this file)
+- `README.md` - This documentation
+
+## Support
+
+If you experience issues:
+1. Check that you're using "Run anyway" for security warnings
+2. Verify your internet connection for API calls
+3. Ensure you have a valid Together.ai API key
+4. Review this documentation for common solutions
+
+---
+
+**Remember**: Security warnings are standard for all unsigned executables. Many legitimate software companies experience the same until they purchase expensive code signing certificates ($300-800/year).

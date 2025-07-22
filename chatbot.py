@@ -60,8 +60,8 @@ class Chatbot:
             except Exception as e:
                 print(f"Warning: Could not read .env file: {e}")
         
-        # Return placeholder if nothing found
-        return 'YOUR_API_KEY_HERE'
+        # Return None if nothing found (not placeholder)
+        return None
 
     def enter_prompt(self, message):
         self.display_response(message)

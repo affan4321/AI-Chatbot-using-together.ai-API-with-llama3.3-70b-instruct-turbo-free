@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Simplified build script to create a standalone executable for public distribution
-This script automatically embeds your API key from .env file into the executable
+AI Chatbot Build Script - Simple and Reliable
+Creates a standalone executable with embedded API key
 """
 
 import subprocess
@@ -13,7 +13,6 @@ def load_api_key():
     """Load API key from .env file"""
     api_key = None
     
-    # Try to load from .env file
     if os.path.exists('.env'):
         print("🔑 Loading API key from .env file...")
         try:
@@ -21,7 +20,6 @@ def load_api_key():
                 for line in f:
                     if line.strip().startswith('TOGETHER_API_KEY='):
                         api_key = line.strip().split('=', 1)[1].strip()
-                        # Remove quotes if present
                         if api_key.startswith('"') and api_key.endswith('"'):
                             api_key = api_key[1:-1]
                         elif api_key.startswith("'") and api_key.endswith("'"):
@@ -29,196 +27,129 @@ def load_api_key():
                         break
         except Exception as e:
             print(f"❌ Error reading .env file: {e}")
-    
-    # Try to load from environment variable
-    if not api_key:
-        api_key = os.getenv('TOGETHER_API_KEY')
-        if api_key:
-            print("🔑 Loading API key from environment variable...")
+            return None
     
     if not api_key:
         print("❌ Error: No API key found!")
-        print("   Please add TOGETHER_API_KEY to your .env file or environment variables")
-        return None
-    
-    if len(api_key) < 10:
-        print("❌ Error: API key seems invalid (too short)")
         return None
     
     print("✅ API key loaded successfully")
     return api_key
 
-def embed_api_key_in_chatbot(api_key):
-    """Create a version of chatbot.py with embedded API key"""
-    print("🔧 Embedding API key into chatbot...")
+def prepare_distribution_file(api_key):
+    """Create a distribution version with embedded API key"""
+    print("📝 Creating distribution version...")
     
-    try:
-        # Read original chatbot.py with UTF-8 encoding to handle Unicode characters
-        with open('chatbot.py', 'r', encoding='utf-8') as f:
-            content = f.read()
-        
-        # First, add sys import for exit() function
-        if 'import sys' not in content:
-            content = content.replace('import os', 'import os\nimport sys')
-        
-        # Replace exit(1) with sys.exit(1) in all instances
-        content = content.replace('exit(1)', 'sys.exit(1)')
-        
-        # Replace the API key loading method with direct embedding
-        old_api_call = "        api_key = self.load_api_key()"
-        new_api_call = f"        api_key = '{api_key}'"
-        
-        if old_api_call in content:
-            content = content.replace(old_api_call, new_api_call)
-            
-            # Also remove the load_api_key method definition
-            load_method_start = "    def load_api_key(self):"
-            load_method_end = "        return 'YOUR_API_KEY_HERE'"
-            
-            start_pos = content.find(load_method_start)
-            if start_pos != -1:
-                end_pos = content.find(load_method_end, start_pos)
-                if end_pos != -1:
-                    end_pos = content.find('\n', end_pos) + 1
-                    content = content[:start_pos] + content[end_pos:]
-        else:
-            # Fallback: replace any occurrence of placeholder
-            content = content.replace("'YOUR_API_KEY_HERE'", f"'{api_key}'")
-            content = content.replace('"YOUR_API_KEY_HERE"', f'"{api_key}"')
-        
-        # Remove warning blocks about placeholder API keys
-        warning_patterns = [
-            '''        if api_key == 'YOUR_API_KEY_HERE':
-            print("⚠️  Warning: Using placeholder API key. Please set your actual API key.")
-            print("   For development: Set TOGETHER_API_KEY environment variable")
-            print("   For distribution: Replace 'YOUR_API_KEY_HERE' in the code with your key")
-            print()''',
-            '''if api_key == 'YOUR_API_KEY_HERE':
-            print("⚠️  Warning: Using placeholder API key. Please set your actual API key.")
-            print("   For development: Set TOGETHER_API_KEY environment variable")
-            print("   For distribution: Replace 'YOUR_API_KEY_HERE' in the code with your key")
-            print()'''
-        ]
-        
-        for pattern in warning_patterns:
-            if pattern in content:
-                content = content.replace(pattern, "        # API key is embedded for distribution")
-        
-        # Write to temporary file for building with UTF-8 encoding
-        with open('chatbot_build.py', 'w', encoding='utf-8') as f:
-            f.write(content)
-        
-        print("✅ API key embedded successfully")
-        print(f"🔑 Using API key: {api_key[:10]}...{api_key[-4:]}")  # Show partial key for verification
-        print("🔧 Fixed sys.exit() imports")
-        return True
-        
-    except Exception as e:
-        print(f"❌ Error embedding API key: {e}")
-        return False
+    with open('chatbot.py', 'r', encoding='utf-8') as f:
+        content = f.read()
+    
+    # Simple replacements
+    content = content.replace('return None', f'return "{api_key}"')
+    content = content.replace(
+        "if not api_key or api_key == 'YOUR_API_KEY_HERE':",
+        "if False:  # Disabled for distribution"
+    )
+    
+    with open('chatbot_dist.py', 'w', encoding='utf-8') as f:
+        f.write(content)
+    
+    print("✅ Distribution file created")
+    return 'chatbot_dist.py'
 
-def install_pyinstaller():
-    """Install PyInstaller if not already installed"""
-    try:
-        import PyInstaller
-        print("✅ PyInstaller is already installed")
-    except ImportError:
-        print("📦 Installing PyInstaller...")
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "pyinstaller"])
-        print("✅ PyInstaller installed successfully")
-
-def build_standalone_executable():
-    """Build a standalone executable with embedded API key"""
+def build_executable():
+    """Build the standalone executable"""
     print("🔨 Building standalone executable...")
     
-    # Command to create a single, standalone executable
-    cmd = [
-        "pyinstaller",
-        "--onefile",                    # Single file
-        "--console",                    # Keep console window
-        "--name", "AI_Chatbot",         # Custom name
-        "--clean",                      # Clean build
-        "--noconfirm",                  # Overwrite without asking
-        "chatbot_build.py"              # Use the modified file with embedded API key
-    ]
-    
-    try:
-        subprocess.check_call(cmd)
-        print("✅ Standalone executable created successfully!")
-        print("📁 Location: dist/AI_Chatbot.exe")
-        print("📦 File size: ~50-100MB (includes everything needed)")
-        print("🎉 Ready for public distribution!")
-        print("\n📋 Distribution Notes:")
-        print("   • Users just need to download and run the .exe file")
-        print("   • No Python installation required")
-        print("   • No setup or configuration needed")
-        print("   • API key is embedded - no .env file needed")
-        print("   • Works on any Windows computer")
-        
-        return True
-        
-    except subprocess.CalledProcessError as e:
-        print(f"❌ Error building executable: {e}")
-        return False
-
-def clean_build_files():
-    """Clean up build artifacts"""
-    # Remove build artifacts
-    artifacts = ["build", "AI_Chatbot.spec", "__pycache__", "chatbot_build.py"]
-    
-    for artifact in artifacts:
-        if os.path.exists(artifact):
-            if os.path.isdir(artifact):
-                shutil.rmtree(artifact)
-                print(f"🧹 Cleaned up {artifact}/")
-            else:
-                os.remove(artifact)
-                print(f"🧹 Cleaned up {artifact}")
-
-def main():
-    print("🚀 AI Chatbot - Public Distribution Builder")
-    print("=" * 50)
-    
-    # Check if chatbot.py exists
-    if not os.path.exists("chatbot.py"):
-        print("❌ Error: chatbot.py not found in current directory")
-        print("   Make sure you're running this script in the project folder")
-        return
-    
-    # Load API key from .env or environment
     api_key = load_api_key()
     if not api_key:
-        return
+        return False
     
-    # Embed API key into chatbot
-    if not embed_api_key_in_chatbot(api_key):
-        return
+    dist_file = prepare_distribution_file(api_key)
     
-    # Install PyInstaller
-    install_pyinstaller()
+    # Simple build command
+    cmd = [
+        sys.executable, '-m', 'PyInstaller',
+        '--onefile',
+        '--console',
+        '--name', 'AI_Chatbot',
+        '--distpath', 'dist',
+        '--clean',
+        '--noconfirm',
+        dist_file
+    ]
     
-    # Build executable
-    if build_standalone_executable():
-        # Clean up build files
-        clean_build_files()
+    print("⚡ Running PyInstaller...")
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
         
-        print("\n🎉 BUILD COMPLETE!")
-        print("🎯 Your executable is ready for public distribution:")
-        print("   📁 File: dist/AI_Chatbot.exe")
-        print("   💾 Size: ~50-100MB")
-        print("   🖥️  Platform: Windows")
-        print("   📦 Dependencies: All included")
-        print("   🔑 API Key: Embedded (no .env file needed)")
-        print("\n📤 Distribution Instructions:")
-        print("   1. Upload 'AI_Chatbot.exe' to your preferred platform")
-        print("   2. Users download and double-click to run")
-        print("   3. No additional setup required!")
-        print("   4. Users don't need API keys or .env files!")
-        
-    else:
-        # Clean up even if build failed
-        clean_build_files()
-        print("\n❌ Build failed. Please check the error messages above.")
+        if result.returncode == 0:
+            print("✅ Build completed successfully!")
+            
+            # Check file
+            exe_path = os.path.join('dist', 'AI_Chatbot.exe')
+            if os.path.exists(exe_path):
+                size_mb = os.path.getsize(exe_path) / (1024 * 1024)
+                print(f"📦 Executable size: {size_mb:.1f} MB")
+                print(f"📁 Location: {os.path.abspath(exe_path)}")
+            
+            # Clean up
+            for cleanup in [dist_file, 'AI_Chatbot.spec']:
+                if os.path.exists(cleanup):
+                    os.remove(cleanup)
+                    print(f"🧹 Cleaned up: {cleanup}")
+            
+            if os.path.exists('build'):
+                shutil.rmtree('build')
+                print("🧹 Cleaned up build directory")
+            
+            print()
+            print("🎉 SUCCESS! Your executable is ready for distribution!")
+            print("📦 The executable includes:")
+            print("   ✅ Embedded API key (no setup needed)")
+            print("   ✅ All dependencies included")
+            print("   ✅ Unicode/emoji support with fallback")
+            print("   ✅ Works on all Windows systems")
+            return True
+        else:
+            print("❌ Build failed!")
+            print("Error:", result.stderr[:500])
+            return False
+            
+    except subprocess.TimeoutExpired:
+        print("❌ Build timed out!")
+        return False
+    except Exception as e:
+        print(f"❌ Build error: {e}")
+        return False
 
 if __name__ == "__main__":
-    main()
+    print("🚀 AI Chatbot Build Script")
+    print("=" * 30)
+    
+    # Check dependencies
+    try:
+        import PyInstaller
+        print("✅ PyInstaller is available")
+    except ImportError:
+        print("❌ PyInstaller not found. Installing...")
+        subprocess.run([sys.executable, '-m', 'pip', 'install', 'pyinstaller'])
+    
+    try:
+        import together
+        print("✅ Together.ai library is available")
+    except ImportError:
+        print("❌ Together library not found. Installing...")
+        subprocess.run([sys.executable, '-m', 'pip', 'install', 'together'])
+    
+    success = build_executable()
+    
+    if success:
+        print("\n🎯 Next steps:")
+        print("1. Test the executable on this machine")
+        print("2. Upload to your preferred hosting service")
+        print("3. Share the download link")
+        print("4. Users download and run - no setup needed!")
+        sys.exit(0)
+    else:
+        print("\n❌ Build failed. Please check the errors above.")
+        sys.exit(1)
